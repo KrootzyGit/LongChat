@@ -28,6 +28,9 @@ let selectedProfilePic = null;
 
 // Initialize the application
 function init() {
+    // Load saved data first
+    loadSavedData();
+    
     // Add event listeners
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', handleKeyPress);
@@ -84,8 +87,16 @@ function init() {
     // Generate image options for chat
     generateImageOptions();
     
-    // Add some sample messages
-    addSampleMessages();
+    // If no messages were loaded, add sample messages
+    if (!messagesLoaded) {
+        addSampleMessages();
+    } else {
+        // Display messages for current section
+        loadMessagesForSection(currentSection);
+    }
+    
+    // Add some sample messages (only if no messages exist)
+    // addSampleMessages(); // This is now handled in loadSavedData()
 }
 
 // Handle sending messages
@@ -108,6 +119,9 @@ function sendMessage() {
     // Add message to array and display
     messages.push(message);
     displayMessage(message);
+    
+    // Save messages to storage
+    chatStorage.saveMessages(messages);
     
     // Clear input
     messageInput.value = '';
@@ -244,6 +258,9 @@ function simulateResponse(originalMessage) {
     
     messages.push(response);
     
+    // Save messages to storage
+    chatStorage.saveMessages(messages);
+    
     // Only display if we're still in the same section
     if (currentSection === response.section) {
         displayMessage(response);
@@ -346,7 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
 window.ChatApp = {
     sendMessage,
     loadMessagesForSection,
-    showNotification
+    showNotification,
+    clearAllData,
+    getStorageInfo: () => chatStorage.getStorageInfo()  // Added for debugging
 };
 
 // Profile Picture Modal Functions
@@ -383,8 +402,12 @@ function selectProfilePic(element, index) {
     // Update profile avatar
     setTimeout(() => {
         profileAvatar.innerHTML = `<img src="placeholder.png" alt="Profile Picture">`;
+        selectedProfilePic = index;
         closeProfilePicModal();
         showNotification('Profile picture updated!');
+        
+        // Save profile picture selection to storage
+        chatStorage.saveProfilePic(selectedProfilePic);
     }, 300);
 }
 
@@ -417,6 +440,9 @@ function saveUsername() {
     usernameElement.textContent = newUsername;
     closeUsernameModalHandler();
     showNotification('Username updated successfully!');
+    
+    // Save username to storage
+    chatStorage.saveUsername(currentUsername);
 }
 
 // Image Modal Functions
@@ -433,8 +459,8 @@ function generateImageOptions() {
     
     // Array of your 20 different image sources
     const imageSources = [
-        '/stickerimages/Sticker1.png',      // Replace with your actual image filenames
-        'image2.png',
+        'stickerImages/Sticker1.png',      // Replace with your actual image filenames
+        'image2.jpg',
         'image3.png',
         'image4.gif',
         'image5.png',
@@ -478,6 +504,9 @@ function sendImageMessage(imageSrc) {
     messages.push(imageMessage);
     displayMessage(imageMessage);
     
+    // Save messages to storage
+    chatStorage.saveMessages(messages);
+    
     // Scroll to bottom
     scrollToBottom();
     
@@ -491,4 +520,42 @@ function sendImageMessage(imageSrc) {
     setTimeout(() => {
         simulateResponse('Nice image!');
     }, 1000 + Math.random() * 2000);
+}
+
+// Data Loading Functions
+function loadSavedData() {
+    // Load username
+    const savedUsername = chatStorage.loadUsername();
+    if (savedUsername) {
+        currentUsername = savedUsername;
+        usernameElement.textContent = savedUsername;
+    }
+    
+    // Load profile picture
+    const savedProfilePic = chatStorage.loadProfilePic();
+    if (savedProfilePic) {
+        selectedProfilePic = savedProfilePic;
+        profileAvatar.innerHTML = `<img src="placeholder.png" alt="Profile Picture">`;
+    }
+    
+    // Load messages
+    const savedMessages = chatStorage.loadMessages();
+    if (savedMessages && savedMessages.length > 0) {
+        messages = savedMessages;
+        loadMessagesForSection(currentSection);
+    } else {
+        // If no messages were loaded, add sample messages
+        addSampleMessages();
+    }
+}
+
+function clearAllData() {
+    if (chatStorage.clearAllData()) {
+        showNotification('All data cleared!');
+        setTimeout(() => {
+            location.reload(); // Refresh the page
+        }, 1000);
+    } else {
+        showNotification('Error clearing data!');
+    }
 }
