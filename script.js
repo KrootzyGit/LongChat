@@ -26,9 +26,15 @@ let currentSection = 'global';
 let messages = [];
 let currentUsername = 'USERNAME';
 let selectedProfilePic = null;
+let selectedProfilePicSrc = 'placeholder.png'; // Store the actual image source
 
 // Initialize the application
 function init() {
+    // Check if user has completed onboarding
+    if (!checkOnboardingStatus()) {
+        return; // Will redirect to onboarding
+    }
+    
     // Load saved data first
     loadSavedData();
     
@@ -65,6 +71,13 @@ function init() {
     closeUsernameModal.addEventListener('click', closeUsernameModalHandler);
     closeImageModal.addEventListener('click', closeImageModalHandler);
     
+    // Debug: Check if close buttons exist
+    console.log('Close buttons found:', {
+        pfp: !!closePfpModal,
+        username: !!closeUsernameModal,
+        image: !!closeImageModal
+    });
+    
     // Close modals when clicking outside
     window.addEventListener('click', (event) => {
         if (event.target === profilePicModal) {
@@ -75,6 +88,21 @@ function init() {
         }
         if (event.target === imageModal) {
             closeImageModalHandler();
+        }
+    });
+    
+    // ESC key to close modals
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (profilePicModal.style.display === 'block') {
+                closeProfilePicModal();
+            }
+            if (usernameModal.style.display === 'block') {
+                closeUsernameModalHandler();
+            }
+            if (imageModal.style.display === 'block') {
+                closeImageModalHandler();
+            }
         }
     });
     
@@ -120,7 +148,9 @@ function sendMessage() {
         user: currentUsername,
         text: messageText,
         timestamp: new Date(),
-        section: currentSection
+        section: currentSection,
+        profilePic: selectedProfilePic, // Save profile pic index with message
+        profilePicSrc: selectedProfilePicSrc // Save actual image source
     };
     
     // Add message to array and display
@@ -199,14 +229,28 @@ function displayMessage(message) {
     const messageElement = document.createElement('div');
     messageElement.className = 'message';
     
+    // Determine profile picture source
+    let profilePicSrc = 'placeholder.png'; // Default for bot users
+    
+    // If this message is from the current user and they have a selected profile pic
+    if (message.user === currentUsername && message.profilePicSrc) {
+        profilePicSrc = message.profilePicSrc;
+    }
+    
     if (message.isImage) {
         messageElement.innerHTML = `
-            <div class="message-user">${message.user}</div>
+            <div class="message-header">
+                <img src="${profilePicSrc}" alt="Profile" class="message-profile-pic">
+                <div class="message-user">${message.user}</div>
+            </div>
             <img src="${message.imageSrc}" alt="Shared image" class="message-image">
         `;
     } else {
         messageElement.innerHTML = `
-            <div class="message-user">${message.user}</div>
+            <div class="message-header">
+                <img src="${profilePicSrc}" alt="Profile" class="message-profile-pic">
+                <div class="message-user">${message.user}</div>
+            </div>
             <div class="message-text">${message.text}</div>
         `;
     }
@@ -346,7 +390,6 @@ function addSampleMessages() {
         scrollToBottom();
     }, 50);
 }
-
 // Add some interactive features
 function addInteractiveFeatures() {
     // Add hover effects to messages
@@ -391,6 +434,10 @@ window.ChatApp = {
 // Profile Picture Modal Functions
 function openProfilePicModal() {
     profilePicModal.style.display = 'block';
+    // Make sure the grid is populated
+    if (document.querySelector('.profile-pic-grid').children.length === 0) {
+        generateProfilePicOptions();
+    }
 }
 
 function closeProfilePicModal() {
@@ -400,16 +447,43 @@ function closeProfilePicModal() {
 function generateProfilePicOptions() {
     const grid = document.querySelector('.profile-pic-grid');
     
-    for (let i = 1; i <= 20; i++) {
+    // Clear any existing options
+    grid.innerHTML = '';
+    
+    // Array of your 20 different profile picture sources
+    const profilePicSources = [
+        'placeholder.png',    // Replace with your actual profile picture filenames
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png',
+        'placeholder.png'
+    ];
+    
+    for (let i = 0; i < profilePicSources.length; i++) {
         const option = document.createElement('div');
         option.className = 'profile-pic-option';
-        option.innerHTML = `<img src="placeholder.png" alt="Profile ${i}">`;
-        option.addEventListener('click', () => selectProfilePic(option, i));
+        option.innerHTML = `<img src="${profilePicSources[i]}" alt="Profile ${i + 1}" onerror="this.style.display='none'">`;
+        option.addEventListener('click', () => selectProfilePic(option, i, profilePicSources[i]));
         grid.appendChild(option);
     }
 }
 
-function selectProfilePic(element, index) {
+function selectProfilePic(element, index, imageSrc) {
     // Remove previous selection
     document.querySelectorAll('.profile-pic-option').forEach(opt => {
         opt.classList.remove('selected');
@@ -418,16 +492,17 @@ function selectProfilePic(element, index) {
     // Add selection to clicked option
     element.classList.add('selected');
     selectedProfilePic = index;
+    selectedProfilePicSrc = imageSrc;
     
     // Update profile avatar
     setTimeout(() => {
-        profileAvatar.innerHTML = `<img src="placeholder.png" alt="Profile Picture">`;
-        selectedProfilePic = index;
+        profileAvatar.innerHTML = `<img src="${imageSrc}" alt="Profile Picture">`;
         closeProfilePicModal();
         showNotification('Profile picture updated!');
         
         // Save profile picture selection to storage
         chatStorage.saveProfilePic(selectedProfilePic);
+        chatStorage.saveProfilePicSrc(selectedProfilePicSrc);
     }, 300);
 }
 
@@ -479,7 +554,7 @@ function generateImageOptions() {
     
     // Array of your 20 different image sources
     const imageSources = [
-        'stickerImages/Sticker1.png',      // Replace with your actual image filenames
+        'image1.png',      // Replace with your actual image filenames
         'image2.jpg',
         'image3.png',
         'image4.gif',
@@ -553,9 +628,11 @@ function loadSavedData() {
     
     // Load profile picture
     const savedProfilePic = chatStorage.loadProfilePic();
-    if (savedProfilePic) {
+    const savedProfilePicSrc = chatStorage.loadProfilePicSrc();
+    if (savedProfilePic !== null && savedProfilePicSrc) {
         selectedProfilePic = savedProfilePic;
-        profileAvatar.innerHTML = `<img src="placeholder.png" alt="Profile Picture">`;
+        selectedProfilePicSrc = savedProfilePicSrc;
+        profileAvatar.innerHTML = `<img src="${savedProfilePicSrc}" alt="Profile Picture">`;
     }
     
     // Load messages
@@ -605,4 +682,35 @@ function handleScroll() {
 // Force scroll to bottom (instant, no animation)
 function forceScrollToBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Onboarding Integration Functions
+function checkOnboardingStatus() {
+    try {
+        const hasCompletedOnboarding = localStorage.getItem('chatApp_onboardingComplete');
+        const hasUsername = localStorage.getItem('chatApp_username');
+        
+        if (!hasCompletedOnboarding || !hasUsername) {
+            // Redirect to onboarding
+            window.location.href = 'onboarding.html';
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.warn('Could not check onboarding status:', error);
+        // If there's an error, assume onboarding is needed
+        window.location.href = 'onboarding.html';
+        return false;
+    }
+}
+
+function getUsernameAnalysis() {
+    try {
+        const analysis = localStorage.getItem('chatApp_usernameAnalysis');
+        return analysis ? JSON.parse(analysis) : null;
+    } catch (error) {
+        console.warn('Could not load username analysis:', error);
+        return null;
+    }
 }

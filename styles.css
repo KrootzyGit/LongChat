@@ -108,16 +108,32 @@ body {
 
 .message {
     background-color: rgba(61, 107, 78, 0.6);
-    padding: 10px 15px;
+    padding: 12px 15px;
     margin-bottom: 10px;
     border-radius: 8px;
     border-left: 4px solid #7db46c;
 }
 
+.message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.message-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #7db46c;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
 .message-user {
     font-weight: bold;
     color: #a8d498;
-    margin-bottom: 5px;
+    margin: 0;
 }
 
 .message-text {

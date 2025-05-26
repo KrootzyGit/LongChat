@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to LongChat</title>
+    <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="welcome-card">
+            <div class="logo-section">
+                <h1 class="app-title">LongChat</h1>
+                <p class="app-subtitle">connecting students</p>
+            </div>
+            
+            <div class="welcome-content">
+                <h2>Welcome to LongChat</h2>
+                
+                <div class="username-section">
+                    <div class="generated-username" id="generatedUsername">
+                        <span class="username-placeholder">Click generate to get your username</span>
+                    </div>
+                    
+                    <button class="generate-btn" id="generateUsernameBtn">
+                        🎲 Generate Username
+                    </button>
+                    
+                    <p class="username-note">
+                        <strong>Don't forget your username!</strong> It is randomly assigned to ensure anonymity.
+                    </p>
+                </div>
+                
+                <div class="password-section">
+                    <div class="input-group">
+                        <label for="passwordInput">Choose a password:</label>
+                        <input type="password" id="passwordInput" placeholder="Enter your password..." maxlength="50">
+                        <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                    </div>
+                    
+                    <p class="password-note">
+                        Your password will help you recover your account if needed.
+                    </p>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="continue-btn" id="continueBtn" disabled>
+                        Continue to Chat
+                    </button>
+                    
+                    <button class="regenerate-btn" id="regenerateBtn" style="display: none;">
+                        🔄 Generate New Username
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="background-pattern"></div>
+    </div>
+
+    <script>
+// Username Generator for LongChat
+class UsernameGenerator {
+    constructor() {
+        this.adjectives = [
+            'hollow', 'unaccountable', 'rigid', 'auspicious', 'tame', 'faded', 'harmonious', 
+            'unequal', 'gusty', 'maniacal', 'magical', 'terrific', 'caring', 'sweltering', 
+            'clean', 'flippant', 'spotty', 'protective', 'draconian', 'relevant', 'roomy', 
+            'childlike', 'lumpy', 'bloody', 'illustrious', 'toothsome', 'creepy', 'slim', 
+            'dramatic', 'remarkable', 'cultured', 'knowledgeable', 'changeable', 'dapper', 
+            'spiky', 'ripe', 'grey', 'curvy', 'fantastic', 'weak', 'probable', 'wretched', 
+            'guilty', 'bored', 'aquatic', 'defeated', 'helpful', 'second-hand', 'aromatic', 
+            'undesirable', 'damaging', 'exotic', 'available', 'violet', 'royal', 'bright', 
+            'divergent', 'swift', 'somber', 'tough', 'medical', 'far', 'lyrical', 'utter', 
+            'steady', 'sordid', 'present', 'shaky', 'imaginary', 'square', 'diligent', 
+            'debonair', 'beneficial', 'trashy', 'tedious', 'inexpensive', 'hesitant', 
+            'hurried', 'savory', 'cooperative', 'laughable', 'meek', 'rude', 'rural', 
+            'erratic', 'uninterested', 'brave', 'premium', 'mixed', 'significant', 'good', 
+            'funny', 'last', 'moaning', 'clear', 'agreeable', 'disturbed', 'voracious', 
+            'versed', 'cluttered'
+        ];
+
+        this.middleWords = ['ahh'];
+        this.middleWordChance = 0.001;
+
+        this.nouns = [
+            'night', 'professor', 'ability', 'organization', 'emotion', 'stranger', 'police', 
+            'person', 'article', 'tooth', 'application', 'perception', 'philosophy', 'reading', 
+            'camera', 'midnight', 'anxiety', 'manufacturer', 'chocolate', 'sister', 'drawer', 
+            'classroom', 'menu', 'wealth', 'reaction', 'bath', 'advice', 'football', 'suggestion', 
+            'news', 'mud', 'historian', 'cheek', 'connection', 'oven', 'scene', 'reflection', 
+            'audience', 'fortune', 'bonus', 'republic', 'insurance', 'speaker', 'user', 'church', 
+            'ad', 'computer', 'medicine', 'fact', 'drama', 'assumption', 'skill', 'chocolate', 
+            'arrival', 'ladder', 'description', 'video', 'debt', 'department', 'village', 
+            'child', 'tooth', 'county', 'week', 'month', 'committee', 'permission', 'conclusion', 
+            'apple', 'location', 'teaching', 'organization', 'tension', 'moment', 'insect', 
+            'storage', 'shopping', 'law', 'pollution', 'sir', 'article', 'engineering', 'player', 
+            'courage', 'activity', 'literature', 'resource', 'significance', 'departure', 
+            'marketing', 'consequence', 'delivery', 'audience', 'son', 'refrigerator', 'loss', 
+            'girl', 'penalty', 'personality', 'buyer'
+        ];
+    }
+
+    getRandomElement(array) {
+        return array[Math.floor(Math.random() * array.length)];
+    }
+
+    capitalize(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    generateUsername() {
+        const adjective = this.capitalize(this.getRandomElement(this.adjectives));
+        const noun = this.capitalize(this.getRandomElement(this.nouns));
+        
+        const shouldIncludeMiddle = Math.random() < this.middleWordChance;
+        
+        if (shouldIncludeMiddle) {
+            const middleWord = this.capitalize(this.getRandomElement(this.middleWords));
+            return `${adjective}${middleWord}${noun}`;
+        } else {
+            return `${adjective}${noun}`;
+        }
+    }
+
+    analyzeUsername(username) {
+        const lowerUsername = username.toLowerCase();
+        let hasMiddle = false;
+        let middleWord = '';
+        
+        for (const middle of this.middleWords) {
+            if (lowerUsername.includes(middle.toLowerCase())) {
+                hasMiddle = true;
+                middleWord = middle;
+                break;
+            }
+        }
+        
+        return {
+            username,
+            hasMiddleWord: hasMiddle,
+            middleWord: hasMiddle ? middleWord : null,
+            isRare: hasMiddle
+        };
+    }
+}
+
+const usernameGenerator = new UsernameGenerator();
+    </script>
+    
+    <script>
+// Onboarding JavaScript for LongChat
+class OnboardingManager {
+    constructor() {
+        this.currentUsername = null;
+        this.currentPassword = null;
+        this.isPasswordVisible = false;
+        
+        this.init();
+    }
+
+    init() {
+        // Get DOM elements
+        this.elements = {
+            generateBtn: document.getElementById('generateUsernameBtn'),
+            regenerateBtn: document.getElementById('regenerateBtn'),
+            usernameDisplay: document.getElementById('generatedUsername'),
+            passwordInput: document.getElementById('passwordInput'),
+            togglePasswordBtn: document.getElementById('togglePassword'),
+            continueBtn: document.getElementById('continueBtn'),
+        };
+
+        // Add event listeners
+        this.setupEventListeners();
+        
+        // Check if user is returning (has existing data)
+        this.checkExistingUser();
+    }
+
+    setupEventListeners() {
+        // Username generation
+        this.elements.generateBtn.addEventListener('click', () => this.generateUsername());
+        this.elements.regenerateBtn.addEventListener('click', () => this.generateUsername());
+        
+        // Password handling
+        this.elements.passwordInput.addEventListener('input', () => this.validateForm());
+        this.elements.togglePasswordBtn.addEventListener('click', () => this.togglePasswordVisibility());
+        
+        // Form submission
+        this.elements.continueBtn.addEventListener('click', () => this.proceedToChat());
+        
+        // Enter key handling
+        this.elements.passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !this.elements.continueBtn.disabled) {
+                this.proceedToChat();
+            }
+        });
+    }
+
+    generateUsername() {
+        console.log('Generate username clicked!'); // Debug log
+        
+        // Show loading state
+        this.showLoadingState();
+        
+        // Simulate generation delay for better UX
+        setTimeout(() => {
+            // Generate new username
+            this.currentUsername = usernameGenerator.generateUsername();
+            console.log('Generated username:', this.currentUsername); // Debug log
+            
+            // Analyze username for special features
+            const analysis = usernameGenerator.analyzeUsername(this.currentUsername);
+            
+            // Display the username
+            this.displayUsername(this.currentUsername, analysis.isRare);
+            
+            // Show regenerate button and validate form
+            this.elements.regenerateBtn.style.display = 'block';
+            this.validateForm();
+            
+            // Show special notification for rare usernames
+            if (analysis.isRare) {
+                this.showRareUsernameNotification();
+            }
+        }, 500 + Math.random() * 1000);
+    }
+
+    showLoadingState() {
+        this.elements.usernameDisplay.innerHTML = `
+            <span class="username-placeholder generating">Generating your unique username...</span>
+        `;
+        this.elements.generateBtn.disabled = true;
+        this.elements.regenerateBtn.disabled = true;
+    }
+
+    displayUsername(username, isRare = false) {
+        this.elements.usernameDisplay.innerHTML = `
+            <span class="username-text ${isRare ? 'rare-username' : ''}">${username}</span>
+        `;
+        this.elements.usernameDisplay.classList.add('has-username');
+        
+        // Re-enable buttons
+        this.elements.generateBtn.disabled = false;
+        this.elements.regenerateBtn.disabled = false;
+        
+        // Hide initial generate button, show regenerate
+        this.elements.generateBtn.style.display = 'none';
+    }
+
+    showRareUsernameNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'rare-notification';
+        notification.innerHTML = `
+            <div class="rare-content">
+                ✨ <strong>Rare Username!</strong> You got a special username with the middle word "ahh"!
+            </div>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1e3a2b;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            max-width: 300px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 5000);
+    }
+
+    togglePasswordVisibility() {
+        this.isPasswordVisible = !this.isPasswordVisible;
+        
+        if (this.isPasswordVisible) {
+            this.elements.passwordInput.type = 'text';
+            this.elements.togglePasswordBtn.textContent = '🙈';
+        } else {
+            this.elements.passwordInput.type = 'password';
+            this.elements.togglePasswordBtn.textContent = '👁️';
+        }
+    }
+
+    validateForm() {
+        const hasUsername = this.currentUsername && this.currentUsername.trim().length > 0;
+        const hasPassword = this.elements.passwordInput.value.trim().length >= 3;
+        
+        this.elements.continueBtn.disabled = !(hasUsername && hasPassword);
+        
+        if (hasUsername && hasPassword) {
+            this.elements.continueBtn.textContent = 'Continue to Chat';
+        } else if (!hasUsername) {
+            this.elements.continueBtn.textContent = 'Generate Username First';
+        } else {
+            this.elements.continueBtn.textContent = 'Enter Password (min 3 chars)';
+        }
+    }
+
+    proceedToChat() {
+        if (this.elements.continueBtn.disabled) return;
+        
+        this.currentPassword = this.elements.passwordInput.value.trim();
+        this.saveUserData();
+        this.showTransition();
+        
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1500);
+    }
+
+    saveUserData() {
+        try {
+            localStorage.setItem('chatApp_username', this.currentUsername);
+            localStorage.setItem('chatApp_password', this.currentPassword);
+            localStorage.setItem('chatApp_onboardingComplete', 'true');
+            localStorage.setItem('chatApp_joinDate', new Date().toISOString());
+            
+            const analysis = usernameGenerator.analyzeUsername(this.currentUsername);
+            localStorage.setItem('chatApp_usernameAnalysis', JSON.stringify(analysis));
+        } catch (error) {
+            console.warn('Could not save user data:', error);
+        }
+    }
+
+    showTransition() {
+        const overlay = document.createElement('div');
+        overlay.innerHTML = `
+            <div style="text-align: center; color: #a8d498;">
+                <div style="width: 50px; height: 50px; border: 4px solid rgba(125, 180, 108, 0.3); border-top: 4px solid #7db46c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                <h2 style="margin: 20px 0 10px; font-size: 28px;">Welcome, ${this.currentUsername}!</h2>
+                <p>Taking you to LongChat...</p>
+            </div>
+        `;
+        
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e3a2b, #2d5a3d);
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
+        `;
+        
+        document.body.appendChild(overlay);
+    }
+
+    checkExistingUser() {
+        try {
+            const hasCompleted = localStorage.getItem('chatApp_onboardingComplete');
+            const username = localStorage.getItem('chatApp_username');
+            
+            if (hasCompleted && username) {
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.warn('Could not check existing user:', error);
+        }
+    }
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .rare-username {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 2s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.3); }
+    }
+`;
+document.head.appendChild(style);
+
+// Initialize onboarding when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing onboarding...');
+    new OnboardingManager();
+});
+    </script>
+</body>
+</html>

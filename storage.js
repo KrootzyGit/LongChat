@@ -6,7 +6,8 @@ class ChatStorage {
         this.STORAGE_KEYS = {
             MESSAGES: 'chatApp_messages',
             USERNAME: 'chatApp_username',
-            PROFILE_PIC: 'chatApp_profilePic'
+            PROFILE_PIC: 'chatApp_profilePic',
+            PROFILE_PIC_SRC: 'chatApp_profilePicSrc'
         };
     }
 
@@ -75,12 +76,34 @@ class ChatStorage {
         }
     }
 
+    // Profile Picture Source Storage
+    saveProfilePicSrc(profilePicSrc) {
+        try {
+            localStorage.setItem(this.STORAGE_KEYS.PROFILE_PIC_SRC, profilePicSrc);
+            return true;
+        } catch (error) {
+            console.warn('Could not save profile picture source to localStorage:', error);
+            return false;
+        }
+    }
+
+    loadProfilePicSrc() {
+        try {
+            const savedProfilePicSrc = localStorage.getItem(this.STORAGE_KEYS.PROFILE_PIC_SRC);
+            return savedProfilePicSrc || null;
+        } catch (error) {
+            console.warn('Could not load profile picture source from localStorage:', error);
+            return null;
+        }
+    }
+
     // Clear All Data
     clearAllData() {
         try {
             localStorage.removeItem(this.STORAGE_KEYS.MESSAGES);
             localStorage.removeItem(this.STORAGE_KEYS.USERNAME);
             localStorage.removeItem(this.STORAGE_KEYS.PROFILE_PIC);
+            localStorage.removeItem(this.STORAGE_KEYS.PROFILE_PIC_SRC);
             return true;
         } catch (error) {
             console.warn('Could not clear data from localStorage:', error);
@@ -110,12 +133,16 @@ class ChatStorage {
             const messages = localStorage.getItem(this.STORAGE_KEYS.MESSAGES);
             const username = localStorage.getItem(this.STORAGE_KEYS.USERNAME);
             const profilePic = localStorage.getItem(this.STORAGE_KEYS.PROFILE_PIC);
+            const profilePicSrc = localStorage.getItem(this.STORAGE_KEYS.PROFILE_PIC_SRC);
 
             return {
                 available: true,
                 messagesSize: messages ? messages.length : 0,
                 hasUsername: !!username,
                 hasProfilePic: !!profilePic,
+                hasProfilePicSrc: !!profilePicSrc,
+                profilePicIndex: profilePic,
+                profilePicSrc: profilePicSrc,
                 totalKeys: Object.keys(localStorage).filter(key => 
                     key.startsWith('chatApp_')).length
             };
