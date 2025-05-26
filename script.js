@@ -19,6 +19,7 @@ const closeImageModal = document.getElementById('closeImageModal');
 const newUsernameInput = document.getElementById('newUsernameInput');
 const saveUsernameBtn = document.getElementById('saveUsernameBtn');
 const cancelUsernameBtn = document.getElementById('cancelUsernameBtn');
+const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
 
 // Chat state
 let currentSection = 'global';
@@ -56,6 +57,9 @@ function init() {
     // Image button listener
     imageButton.addEventListener('click', openImageModal);
     
+    // Scroll to bottom button listener
+    scrollToBottomBtn.addEventListener('click', scrollToBottom);
+    
     // Modal close listeners
     closePfpModal.addEventListener('click', closeProfilePicModal);
     closeUsernameModal.addEventListener('click', closeUsernameModalHandler);
@@ -86,6 +90,9 @@ function init() {
     
     // Generate image options for chat
     generateImageOptions();
+    
+    // Set up scroll monitoring for the scroll-to-bottom button
+    setupScrollMonitoring();
     
     // If no messages were loaded, add sample messages
     if (!messagesLoaded) {
@@ -270,7 +277,10 @@ function simulateResponse(originalMessage) {
 
 // Scroll chat to bottom
 function scrollToBottom() {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({
+        top: chatMessages.scrollHeight,
+        behavior: 'smooth'
+    });
 }
 
 // Show notification
@@ -330,6 +340,11 @@ function addSampleMessages() {
     
     // Display messages for current section
     loadMessagesForSection(currentSection);
+    
+    // Scroll to bottom after switching sections
+    setTimeout(() => {
+        scrollToBottom();
+    }, 50);
 }
 
 // Add some interactive features
@@ -351,6 +366,11 @@ function addInteractiveFeatures() {
     messageInput.addEventListener('input', () => {
         // Could add typing indicator logic here
     });
+    
+    // Initial scroll to bottom after everything loads
+    setTimeout(() => {
+        forceScrollToBottom();
+    }, 200);
 }
 
 // Initialize the application when DOM is loaded
@@ -547,6 +567,11 @@ function loadSavedData() {
         // If no messages were loaded, add sample messages
         addSampleMessages();
     }
+    
+    // Scroll to bottom after loading messages
+    setTimeout(() => {
+        scrollToBottom();
+    }, 100);
 }
 
 function clearAllData() {
@@ -558,4 +583,26 @@ function clearAllData() {
     } else {
         showNotification('Error clearing data!');
     }
+}
+
+// Scroll Monitoring Functions
+function setupScrollMonitoring() {
+    chatMessages.addEventListener('scroll', handleScroll);
+}
+
+function handleScroll() {
+    const { scrollTop, scrollHeight, clientHeight } = chatMessages;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    // Show/hide scroll to bottom button
+    if (isNearBottom) {
+        scrollToBottomBtn.classList.remove('show');
+    } else {
+        scrollToBottomBtn.classList.add('show');
+    }
+}
+
+// Force scroll to bottom (instant, no animation)
+function forceScrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
